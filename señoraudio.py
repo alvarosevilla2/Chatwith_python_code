@@ -1,5 +1,3 @@
-# Truzz Blogg - Youtube link: https://www.youtube.com/watch?v=KcjHfnCteZg
-# Speech recognition in Python ::: How to convert Speech to Text
 
 import speech_recognition as sr
 
@@ -13,4 +11,4 @@ with sr.Microphone() as source:
         text = r.recognize_google(audio, language='es-ES')
         print("Lo que dijiste: {}".format(text))
     except:
-        print("I am sorry! I can not understand!")
+        print("¡Lo siento, no te entiendo!")
