@@ -1,21 +1,28 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QDialog, QGridLayout, QMessageBox, QLabel, QPushButton, QLineEdit, QSpinBox
 from ui_register import source
 import mysql.connector as mc
 import mysql.connector
 from ui_Perfil import saravic
 from DIariofinal import source5
-from ui_monitoreo5 import source5
+from monito import sourcemoni
 from desafios import source_des
 from ui_informacion5 import source50
 from ui_principal5 import sourcep
+from PyQt5 import QtCore, QtGui, QtWidgets
+from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
+from chatterbot.trainers import ListTrainer
+from chatterbot.comparisons import LevenshteinDistance
+from chatterbot.conversation import Statement
+import webbrowser
 
 
 class Ui_Perfil(object):
     def setupUi(self, Perfil):
         Perfil.setObjectName("Perfil")
         Perfil.resize(380, 812)
+        Perfil.setFixedSize(380,812)
         Perfil.setStyleSheet("*{\n"
 "font-family: century gothic;\n"
 "}\n"
@@ -176,10 +183,118 @@ class Ui_Perfil(object):
         self.nombre.setText(_translate("Perfil", "Alvaro Sevilla"))
         self.atras.setText(_translate("Perfil", "..."))
 
+class Ui_chatbots(object):
+    def setupUi(self, chatbots):
+        chatbots.setObjectName("chatbots")
+        chatbots.resize(380, 812)
+        chatbots.setFixedSize(380,812)
+        chatbots.setStyleSheet("*{\n"
+"font-family: century gothic;\n"
+"}\n"
+"\n"
+"QWidget{\n"
+"background: #464453;\n"
+"}\n"
+"\n"
+"QPushButton{\n"
+"background: #CDBCBC;\n"
+"border-radius:10px;\n"
+"}\n"
+"\n"
+"QLineEdit{\n"
+"background: #CDBCBC;\n"
+"border-radius:10px;\n"
+"}\n"
+"\n"
+"QLabel{\n"
+"color: white;\n"
+"font-size: 12pt;\n"
+"}\n"
+"\n"
+"QTextEdit{\n"
+"background: #EEDEDE;\n"
+"border-radius:16px;\n"
+"}")
+        self.centralwidget = QtWidgets.QWidget(chatbots)
+        self.centralwidget.setObjectName("centralwidget")
+        self.enviar = QtWidgets.QPushButton(self.centralwidget)
+        self.enviar.setGeometry(QtCore.QRect(290, 710, 71, 31))
+        self.enviar.setObjectName("enviar")
+        self.useredit = QtWidgets.QLineEdit(self.centralwidget)
+        self.useredit.setGeometry(QtCore.QRect(10, 710, 271, 31))
+        self.useredit.setText("")
+        self.useredit.setObjectName("useredit")
+        self.atras = QtWidgets.QPushButton(self.centralwidget)
+        self.atras.setGeometry(QtCore.QRect(20, 20, 61, 31))
+        self.atras.setObjectName("atras")
+        self.titulo = QtWidgets.QLabel(self.centralwidget)
+        self.titulo.setGeometry(QtCore.QRect(150, 20, 91, 21))
+        self.titulo.setObjectName("titulo")
+        self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
+        self.textEdit.setGeometry(QtCore.QRect(10, 80, 361, 591))
+        self.textEdit.setObjectName("textEdit")
+        chatbots.setCentralWidget(self.centralwidget)
+
+        self.retranslateUi(chatbots)
+        QtCore.QMetaObject.connectSlotsByName(chatbots)
+
+        chatbot=ChatBot('chatpet',
+
+            input_adapter='chatterbot.input.TerminalAdapter', 
+            output_adapter='chatterbot.output.TerminalAdapter',
+
+            trainer='chatterbot.trainers.ListTrainer',
+
+            logic_adapters = [
+                {
+                    "import_path": "chatterbot.logic.BestMatch",
+                    "statement_comparison_function": "chatterbot.comparisons.levenshtein_distance",
+                }
+            ],
+
+            preprocessors=[
+            'chatterbot.preprocessors.clean_whitespace'
+            ],
+        )
+
+        traine=ListTrainer(chatbot)
+        trainer=ChatterBotCorpusTrainer(chatbot)
+        trainer.train("chatterbot.corpus.spanish")
+        trainer.train("./chattrain.yml")
+        trainer.train("./psico.yml")
+        trainer.train("./conversation.yml")
+
+        levenshtein_distance = LevenshteinDistance()
+
+        error=Statement('Te has equivocado')
+        request=""
+        entradaDelUsuarioAnterior=""
+
+        request=str(self.useredit)
+        response=str(chatbot.get_response(request))
+        if levenshtein_distance.compare(Statement(request),error)>0.51:
+            response='Bot: ¿Qué debería haber dicho?'
+            entradaDelUsuarioCorreccion = self.useredit
+            traine.train([entradaDelUsuarioAnterior,entradaDelUsuarioCorreccion]) 
+            print("Bot: He aprendiendo que cuando digas {} debo responder {}".format(entradaDelUsuarioAnterior,entradaDelUsuarioCorreccion))
+
+        entradaDelUsuarioAnterior=request
+        if self.enviar.clicked :
+            self.textEdit.append("{}".format(request))
+        self.textEdit.setPlainText(response)
+
+    def retranslateUi(self, chatbots):
+        _translate = QtCore.QCoreApplication.translate
+        chatbots.setWindowTitle(_translate("chatbots", "chatbots"))
+        self.enviar.setText(_translate("chatbots", "Enviar"))
+        self.atras.setText(_translate("chatbots", "Atrás"))
+        self.titulo.setText(_translate("chatbots", "Chatbot"))
+
 class Ui_Diario_1(object):
     def setupUi(self, Diario_1):
         Diario_1.setObjectName("Diario_1")
         Diario_1.resize(380, 812)
+        Diario_1.setFixedSize(380,812)
         font = QtGui.QFont()
         font.setFamily("century gothic")
         font.setPointSize(12)
@@ -317,311 +432,260 @@ class Ui_Diario_1(object):
         self.atras.setText(_translate("Diario_1", "..."))
 
 
-class Ui_Monitoreo(object):
-    def setupUi(self, Monitoreo):
-        Monitoreo.setObjectName("Monitoreo")
-        Monitoreo.resize(380, 812)
-        Monitoreo.setStyleSheet("*{\n"
+class Ui_monito(object):
+    def setupUi(self, monito):
+        monito.setObjectName("monito")
+        monito.resize(380, 812)
+        monito.setFixedSize(380,812)
+        monito.setStyleSheet("*{\n"
 "font-family: century gothic;\n"
-"}\n"
-"\n"
-"QWidget{\n"
 "background-image: url(:/images/images/fdeca2.png);\n"
 "}\n"
 "\n"
-"QFrame#cont1{\n"
-"background: #ffffff;\n"
-"border-radius:10px;\n"
+"QLabel#tit{\n"
+"background:transparent;\n"
+"font-weight:bold;\n"
+"font-size:26px;\n"
 "}\n"
 "\n"
-"QFrame#cont2{\n"
-"background: #ffffff;\n"
-"border-radius:10px;\n"
+"QLabel#des{\n"
+"background:transparent;\n"
 "}\n"
 "\n"
-"QFrame#cont3{\n"
-"background: #ffffff;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QFrame#cont4{\n"
-"background: #ffffff;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QToolButton#icono1{\n"
+"QFrame{\n"
 "background: transparent;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QFrame#mes1{\n"
-"background: #3F414E;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QFrame#mes2{\n"
-"background: #3F414E;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QLabel#monitoreo{\n"
-"color: black;\n"
-"font-size: 26px;\n"
-"font-weight: bold;\n"
-"}\n"
-"\n"
-"QLabel#indicacion{\n"
-"color: black;\n"
-"font-size: 10px;\n"
-"}\n"
-"\n"
-"QLabel#octubre{\n"
-"background: transparent;\n"
-"color: white;\n"
-"font-size: 12px;\n"
-"}\n"
-"\n"
-"QLabel#noviembre{\n"
-"background: transparent;\n"
-"color: white;\n"
-"font-size: 12px;\n"
-"}\n"
-"\n"
-"QPushButton{\n"
-"background: transparent;\n"
-"border-radius:10px;\n"
-"}\n"
-"\n"
-"QPushButton:hover{\n"
-"background: transparent;\n"
-"border-radius:10px;\n"
-"color:#ffffff;\n"
-"}\n"
-"\n"
-"QToolButton#mes_1{\n"
-"background:#3F414E;\n"
-"border-radius:10px;\n"
-"color: white;\n"
-"font-size: 12px;\n"
-"}\n"
-"\n"
-"QToolButton#mes_2{\n"
-"background:#3F414E;\n"
-"border-radius:10px;\n"
-"color: white;\n"
-"font-size: 12px;\n"
-"}\n"
-"\n"
-"QToolButton#reporte_1{\n"
-"background:#ebdddd;\n"
-"border-radius: 8px;\n"
-"color: black;\n"
-"font-size: 10px;\n"
-"}\n"
-"\n"
-"QToolButton#reporte_2{\n"
-"background:#ebdddd;\n"
-"border-radius: 8px;\n"
-"color: black;\n"
-"font-size: 10px;\n"
-"}\n"
-"\n"
-"QToolButton#reporte_3{\n"
-"background:#ebdddd;\n"
-"border-radius: 8px;\n"
-"color: black;\n"
-"font-size: 10px;\n"
-"}\n"
-"\n"
-"QLabel{\n"
-"background: transparent;\n"
-"color: black;\n"
-"font-size: 9px;\n"
-"}\n"
-"\n"
-"QToolButton#resumen{\n"
-"background:#cfe6e0;\n"
-"border-radius: 8px;\n"
-"color: black;\n"
-"font-size: 12px;\n"
 "}\n"
 "\n"
 "QFrame#hora{\n"
-"image:url(:/images/images/hora sara.png);\n"
+"image: url(:/images/images/hora sara.png);\n"
 "}\n"
 "\n"
-"QPushButton#atras{\n"
+"QFrame#atras{\n"
+"image: url(:/images/images/atras.png);\n"
+"}\n"
 "\n"
+"QFrame#frame{\n"
+"image: url(:/images/images/blanco.png);\n"
+"}\n"
+"\n"
+"QFrame#frame{\n"
+"image: url(:/images/images/blanco.png);\n"
+"}\n"
+"\n"
+"QFrame#frame_2{\n"
+"image: url(:/images/images/blanco.png);\n"
+"}\n"
+"\n"
+"QFrame#frame_3{\n"
+"image: url(:/images/images/blanco.png);\n"
+"}\n"
+"\n"
+"QFrame#grafi{\n"
+"image: url(:/images/images/blanco.png);\n"
+"}\n"
+"\n"
+"QFrame#grafi1{\n"
+"image: url(:/images/images/barras.png);\n"
+"}\n"
+"\n"
+"QFrame#grafi2{\n"
+"image: url(:/images/images/torta.jpg);\n"
+"}\n"
+"\n"
+"QToolButton#oct{\n"
+"color: white;\n"
+"background: #3F414E;\n"
+"border-radius: 15px;\n"
+"}\n"
+"\n"
+"QToolButton#nov{\n"
+"color: white;\n"
+"background: #3F414E;\n"
+"border-radius: 15px;\n"
+"}\n"
+"\n"
+"QToolButton#rep1{\n"
+"background: #F49494;\n"
+"border-radius: 15px;\n"
+"}\n"
+"\n"
+"QToolButton#rep2{\n"
+"background: #F49494;\n"
+"border-radius: 15px;\n"
+"}\n"
+"\n"
+"QToolButton#rep3{\n"
+"background: #F49494;\n"
+"border-radius:15px;\n"
+"}\n"
+"\n"
+"QPushButton#but1{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/cuesto.jpg);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QPushButton#but2{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/pira.png);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QPushButton#but3{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/cuesto.jpg);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QPushButton#but4{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/pira.png);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QPushButton#but5{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/cuesto.jpg);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QPushButton#but6{\n"
+"border-radius:15px;\n"
+"image: url(:/images/images/pira.png);\n"
+"background: transparent;\n"
+"}\n"
+"\n"
+"QToolButton{\n"
+"color: white;\n"
+"background: #3F414E;\n"
+"border-radius:15px;\n"
 "}")
-        self.centralwidget = QtWidgets.QWidget(Monitoreo)
+        self.centralwidget = QtWidgets.QWidget(monito)
         self.centralwidget.setObjectName("centralwidget")
-        self.cont1 = QtWidgets.QFrame(self.centralwidget)
-        self.cont1.setGeometry(QtCore.QRect(85, 230, 231, 91))
-        self.cont1.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.cont1.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.cont1.setObjectName("cont1")
-        self.repor_1 = QtWidgets.QPushButton(self.cont1)
-        self.repor_1.setGeometry(QtCore.QRect(40, 35, 75, 41))
-        self.repor_1.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("images/cuesto.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.repor_1.setIcon(icon)
-        self.repor_1.setIconSize(QtCore.QSize(60, 60))
-        self.repor_1.setObjectName("repor_1")
-        self.pira_1 = QtWidgets.QPushButton(self.cont1)
-        self.pira_1.setGeometry(QtCore.QRect(140, 30, 61, 51))
-        self.pira_1.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("images/pira.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pira_1.setIcon(icon1)
-        self.pira_1.setIconSize(QtCore.QSize(35, 35))
-        self.pira_1.setObjectName("pira_1")
-        self.reporte_1 = QtWidgets.QToolButton(self.cont1)
-        self.reporte_1.setGeometry(QtCore.QRect(5, 5, 61, 16))
-        self.reporte_1.setObjectName("reporte_1")
-        self.label = QtWidgets.QLabel(self.cont1)
-        self.label.setGeometry(QtCore.QRect(55, 25, 47, 13))
-        self.label.setObjectName("label")
-        self.label_2 = QtWidgets.QLabel(self.cont1)
-        self.label_2.setGeometry(QtCore.QRect(155, 25, 47, 13))
-        self.label_2.setObjectName("label_2")
-        self.cont2 = QtWidgets.QFrame(self.centralwidget)
-        self.cont2.setGeometry(QtCore.QRect(85, 380, 231, 91))
-        self.cont2.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.cont2.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.cont2.setObjectName("cont2")
-        self.repor_2 = QtWidgets.QPushButton(self.cont2)
-        self.repor_2.setGeometry(QtCore.QRect(40, 35, 75, 41))
-        self.repor_2.setText("")
-        self.repor_2.setIcon(icon)
-        self.repor_2.setIconSize(QtCore.QSize(60, 60))
-        self.repor_2.setObjectName("repor_2")
-        self.pira_2 = QtWidgets.QPushButton(self.cont2)
-        self.pira_2.setGeometry(QtCore.QRect(140, 30, 61, 51))
-        self.pira_2.setText("")
-        self.pira_2.setIcon(icon1)
-        self.pira_2.setIconSize(QtCore.QSize(35, 35))
-        self.pira_2.setObjectName("pira_2")
-        self.reporte_2 = QtWidgets.QToolButton(self.cont2)
-        self.reporte_2.setGeometry(QtCore.QRect(5, 5, 61, 16))
-        self.reporte_2.setObjectName("reporte_2")
-        self.label_5 = QtWidgets.QLabel(self.cont2)
-        self.label_5.setGeometry(QtCore.QRect(55, 25, 47, 13))
-        self.label_5.setObjectName("label_5")
-        self.label_6 = QtWidgets.QLabel(self.cont2)
-        self.label_6.setGeometry(QtCore.QRect(155, 25, 47, 13))
-        self.label_6.setObjectName("label_6")
-        self.cont3 = QtWidgets.QFrame(self.centralwidget)
-        self.cont3.setGeometry(QtCore.QRect(85, 490, 231, 91))
-        self.cont3.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.cont3.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.cont3.setObjectName("cont3")
-        self.repor_3 = QtWidgets.QPushButton(self.cont3)
-        self.repor_3.setGeometry(QtCore.QRect(40, 35, 75, 41))
-        self.repor_3.setText("")
-        self.repor_3.setIcon(icon)
-        self.repor_3.setIconSize(QtCore.QSize(60, 60))
-        self.repor_3.setObjectName("repor_3")
-        self.pira_3 = QtWidgets.QPushButton(self.cont3)
-        self.pira_3.setGeometry(QtCore.QRect(140, 30, 61, 51))
-        self.pira_3.setText("")
-        self.pira_3.setIcon(icon1)
-        self.pira_3.setIconSize(QtCore.QSize(35, 35))
-        self.pira_3.setObjectName("pira_3")
-        self.reporte_3 = QtWidgets.QToolButton(self.cont3)
-        self.reporte_3.setGeometry(QtCore.QRect(5, 5, 61, 16))
-        self.reporte_3.setObjectName("reporte_3")
-        self.label_3 = QtWidgets.QLabel(self.cont3)
-        self.label_3.setGeometry(QtCore.QRect(55, 25, 47, 13))
-        self.label_3.setObjectName("label_3")
-        self.label_4 = QtWidgets.QLabel(self.cont3)
-        self.label_4.setGeometry(QtCore.QRect(155, 25, 47, 13))
-        self.label_4.setObjectName("label_4")
-        self.monitoreo = QtWidgets.QLabel(self.centralwidget)
-        self.monitoreo.setGeometry(QtCore.QRect(115, 90, 181, 21))
-        self.monitoreo.setObjectName("monitoreo")
-        self.indicacion = QtWidgets.QLabel(self.centralwidget)
-        self.indicacion.setGeometry(QtCore.QRect(75, 130, 271, 21))
-        self.indicacion.setObjectName("indicacion")
-        self.cont4 = QtWidgets.QFrame(self.centralwidget)
-        self.cont4.setGeometry(QtCore.QRect(66, 680, 271, 91))
-        self.cont4.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.cont4.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.cont4.setObjectName("cont4")
-        self.resu_1 = QtWidgets.QPushButton(self.cont4)
-        self.resu_1.setGeometry(QtCore.QRect(40, 15, 101, 61))
-        self.resu_1.setText("")
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("images/barras.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.resu_1.setIcon(icon2)
-        self.resu_1.setIconSize(QtCore.QSize(100, 100))
-        self.resu_1.setObjectName("resu_1")
-        self.resu_2 = QtWidgets.QPushButton(self.cont4)
-        self.resu_2.setGeometry(QtCore.QRect(160, 20, 81, 51))
-        self.resu_2.setText("")
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("images/torta.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.resu_2.setIcon(icon3)
-        self.resu_2.setIconSize(QtCore.QSize(80, 80))
-        self.resu_2.setObjectName("resu_2")
-        self.mes_1 = QtWidgets.QToolButton(self.centralwidget)
-        self.mes_1.setGeometry(QtCore.QRect(85, 195, 71, 21))
-        self.mes_1.setObjectName("mes_1")
-        self.mes_2 = QtWidgets.QToolButton(self.centralwidget)
-        self.mes_2.setGeometry(QtCore.QRect(85, 345, 71, 21))
-        self.mes_2.setObjectName("mes_2")
-        self.resumen = QtWidgets.QToolButton(self.centralwidget)
-        self.resumen.setGeometry(QtCore.QRect(125, 650, 161, 20))
-        self.resumen.setObjectName("resumen")
+        self.tit = QtWidgets.QLabel(self.centralwidget)
+        self.tit.setGeometry(QtCore.QRect(130, 70, 131, 41))
+        font = QtGui.QFont()
+        font.setFamily("century gothic")
+        font.setPointSize(-1)
+        font.setBold(True)
+        font.setWeight(75)
+        self.tit.setFont(font)
+        self.tit.setObjectName("tit")
+        self.des = QtWidgets.QLabel(self.centralwidget)
+        self.des.setGeometry(QtCore.QRect(20, 110, 311, 41))
+        self.des.setObjectName("des")
+        self.frame = QtWidgets.QFrame(self.centralwidget)
+        self.frame.setGeometry(QtCore.QRect(60, 170, 270, 150))
+        self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame.setObjectName("frame")
+        self.but1 = QtWidgets.QPushButton(self.frame)
+        self.but1.setGeometry(QtCore.QRect(50, 50, 90, 55))
+        self.but1.setText("")
+        self.but1.setObjectName("but1")
+        self.but2 = QtWidgets.QPushButton(self.frame)
+        self.but2.setGeometry(QtCore.QRect(150, 50, 90, 50))
+        self.but2.setText("")
+        self.but2.setObjectName("but2")
+        self.frame_2 = QtWidgets.QFrame(self.centralwidget)
+        self.frame_2.setGeometry(QtCore.QRect(60, 320, 270, 150))
+        self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_2.setObjectName("frame_2")
+        self.but3 = QtWidgets.QPushButton(self.frame_2)
+        self.but3.setGeometry(QtCore.QRect(50, 50, 90, 55))
+        self.but3.setText("")
+        self.but3.setObjectName("but3")
+        self.but4 = QtWidgets.QPushButton(self.frame_2)
+        self.but4.setGeometry(QtCore.QRect(150, 50, 90, 50))
+        self.but4.setText("")
+        self.but4.setObjectName("but4")
+        self.frame_3 = QtWidgets.QFrame(self.centralwidget)
+        self.frame_3.setGeometry(QtCore.QRect(60, 430, 270, 150))
+        self.frame_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_3.setObjectName("frame_3")
+        self.but5 = QtWidgets.QPushButton(self.frame_3)
+        self.but5.setGeometry(QtCore.QRect(50, 50, 90, 55))
+        self.but5.setText("")
+        self.but5.setObjectName("but5")
+        self.but6 = QtWidgets.QPushButton(self.frame_3)
+        self.but6.setGeometry(QtCore.QRect(150, 50, 90, 50))
+        self.but6.setText("")
+        self.but6.setObjectName("but6")
+        self.grafi = QtWidgets.QFrame(self.centralwidget)
+        self.grafi.setGeometry(QtCore.QRect(60, 620, 270, 150))
+        self.grafi.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.grafi.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.grafi.setObjectName("grafi")
+        self.grafi2 = QtWidgets.QFrame(self.grafi)
+        self.grafi2.setGeometry(QtCore.QRect(160, 20, 91, 101))
+        self.grafi2.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.grafi2.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.grafi2.setObjectName("grafi2")
+        self.grafi1 = QtWidgets.QFrame(self.grafi)
+        self.grafi1.setGeometry(QtCore.QRect(20, 30, 120, 80))
+        self.grafi1.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.grafi1.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.grafi1.setObjectName("grafi1")
+        self.resu = QtWidgets.QToolButton(self.grafi)
+        self.resu.setGeometry(QtCore.QRect(60, 0, 151, 20))
+        self.resu.setObjectName("resu")
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.radioButton.setGeometry(QtCore.QRect(200, 590, 21, 17))
+        self.radioButton.setGeometry(QtCore.QRect(190, 550, 82, 17))
         self.radioButton.setText("")
         self.radioButton.setObjectName("radioButton")
         self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
-        self.radioButton_2.setGeometry(QtCore.QRect(200, 610, 21, 17))
+        self.radioButton_2.setGeometry(QtCore.QRect(190, 570, 82, 17))
         self.radioButton_2.setText("")
         self.radioButton_2.setObjectName("radioButton_2")
-        self.hora = QtWidgets.QFrame(self.centralwidget)
-        self.hora.setGeometry(QtCore.QRect(10, 0, 351, 41))
-        self.hora.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.hora.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.hora.setObjectName("hora")
-        self.atras = QtWidgets.QPushButton(self.centralwidget)
-        self.atras.setGeometry(QtCore.QRect(0, 40, 71, 16))
-        self.atras.setText("")
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("images/atrás sara.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.atras.setIcon(icon4)
-        self.atras.setIconSize(QtCore.QSize(80, 80))
+        self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton_3.setGeometry(QtCore.QRect(190, 590, 82, 17))
+        self.radioButton_3.setText("")
+        self.radioButton_3.setObjectName("radioButton_3")
+        self.oct = QtWidgets.QToolButton(self.centralwidget)
+        self.oct.setGeometry(QtCore.QRect(65, 170, 71, 19))
+        self.oct.setObjectName("oct")
+        self.nov = QtWidgets.QToolButton(self.centralwidget)
+        self.nov.setGeometry(QtCore.QRect(65, 320, 71, 21))
+        self.nov.setObjectName("nov")
+        self.rep1 = QtWidgets.QToolButton(self.centralwidget)
+        self.rep1.setGeometry(QtCore.QRect(70, 200, 61, 19))
+        self.rep1.setObjectName("rep1")
+        self.rep2 = QtWidgets.QToolButton(self.centralwidget)
+        self.rep2.setGeometry(QtCore.QRect(70, 350, 61, 19))
+        self.rep2.setObjectName("rep2")
+        self.rep3 = QtWidgets.QToolButton(self.centralwidget)
+        self.rep3.setGeometry(QtCore.QRect(70, 460, 61, 19))
+        self.rep3.setObjectName("rep3")
+        self.atras = QtWidgets.QFrame(self.centralwidget)
+        self.atras.setGeometry(QtCore.QRect(20, 10, 81, 41))
+        self.atras.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.atras.setFrameShadow(QtWidgets.QFrame.Raised)
         self.atras.setObjectName("atras")
-        Monitoreo.setCentralWidget(self.centralwidget)
+        monito.setCentralWidget(self.centralwidget)
 
-        self.retranslateUi(Monitoreo)
-        QtCore.QMetaObject.connectSlotsByName(Monitoreo)
+        self.retranslateUi(monito)
+        QtCore.QMetaObject.connectSlotsByName(monito)
 
-    def retranslateUi(self, Monitoreo):
+    def retranslateUi(self, monito):
         _translate = QtCore.QCoreApplication.translate
-        Monitoreo.setWindowTitle(_translate("Monitoreo", "Monitoreo"))
-        self.reporte_1.setText(_translate("Monitoreo", "Reporte1"))
-        self.label.setText(_translate("Monitoreo", "Depresion"))
-        self.label_2.setText(_translate("Monitoreo", "Ansiedad"))
-        self.reporte_2.setText(_translate("Monitoreo", "Reporte2"))
-        self.label_5.setText(_translate("Monitoreo", "Depresion"))
-        self.label_6.setText(_translate("Monitoreo", "Ansiedad"))
-        self.reporte_3.setText(_translate("Monitoreo", "Reporte3"))
-        self.label_3.setText(_translate("Monitoreo", "Depresion"))
-        self.label_4.setText(_translate("Monitoreo", "Ansiedad"))
-        self.monitoreo.setText(_translate("Monitoreo", "Mi Monitoreo"))
-        self.indicacion.setText(_translate("Monitoreo", "Aqui encontraras todos los cuestionarios que respondiste"))
-        self.mes_1.setText(_translate("Monitoreo", "Octubre"))
-        self.mes_2.setText(_translate("Monitoreo", "Noviembre"))
-        self.resumen.setText(_translate("Monitoreo", "Resumen de cuestionarios"))
+        monito.setWindowTitle(_translate("monito", "MainWindow"))
+        self.tit.setText(_translate("monito", "Monitoreo"))
+        self.des.setText(_translate("monito", "Aqui podras encontrar tus resultados de los cuestionarios"))
+        self.resu.setText(_translate("monito", "Resumen de cuestionarios"))
+        self.oct.setText(_translate("monito", "Octubre"))
+        self.nov.setText(_translate("monito", "Noviembre"))
+        self.rep1.setText(_translate("monito", "Reporte 1"))
+        self.rep2.setText(_translate("monito", "Reporte 2"))
+        self.rep3.setText(_translate("monito", "Reporte 3"))
 
 
 class Ui_desafios(object):
     def setupUi(self, desafios):
         desafios.setObjectName("desafios")
         desafios.resize(380, 810)
+        desafios.setFixedSize(380,812)
         desafios.setAutoFillBackground(True)
         desafios.setStyleSheet("*{\n"
 "font-family: century gothic;\n"
@@ -789,6 +853,7 @@ class Ui_Informacion(object):
     def setupUi(self, Informacion):
         Informacion.setObjectName("Informacion")
         Informacion.resize(380, 812)
+        Informacion.setFixedSize(380,812)
         self.centralwidget = QtWidgets.QWidget(Informacion)
         font = QtGui.QFont()
         font.setFamily("century gothic")
@@ -904,6 +969,11 @@ class Ui_Informacion(object):
 
         self.retranslateUi(Informacion)
         QtCore.QMetaObject.connectSlotsByName(Informacion)
+        self.pushButton.clicked.connect(self.link)
+
+    def link(self):
+        webbrowser.open_new("https://www.who.int/es/campaigns/connecting-the-world-to-combat-coronavirus/healthyathome/healthyathome---mental-health?gclid=Cj0KCQiAkuP9BRCkARIsAKGLE8Wh9uXm6bJRO6WIM1fjHPAE5hdoNIX-pzbL9Z8CP-VdMcPeaptBGhMaArO3EALw_wcB")
+
 
     def retranslateUi(self, Informacion):
         _translate = QtCore.QCoreApplication.translate
@@ -919,6 +989,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(380, 810)
+        MainWindow.setFixedSize(380,812)
         MainWindow.setStyleSheet("*{\n"
 "font-style: century gothic;\n"
 "}\n"
@@ -1047,6 +1118,7 @@ class Ui_Inicio(object):
     def setupUi(self, Inicio):
         Inicio.setObjectName("Inicio")
         Inicio.resize(380, 812)
+        Inicio.setFixedSize(380,812)
         Inicio.setStyleSheet("*{\n"
 "font-family century gothic;\n"
 "}\n"
@@ -1118,6 +1190,7 @@ class Ui_Inicio(object):
 
         self.pushButton.clicked.connect(self.perfil)
         self.pushButton_3.clicked.connect(self.diario)
+        self.pushButton_2.clicked.connect(self.chatbots)
         self.pushButton_4.clicked.connect(self.monitor)
         self.pushButton_5.clicked.connect(self.desafio)
         self.pushButton_6.clicked.connect(self.info)
@@ -1147,12 +1220,18 @@ class Ui_Inicio(object):
         self.ui = Ui_Diario_1()
         self.ui.setupUi(self.Diario_1)
         self.Diario_1.show()
+    
+    def chatbots(self):
+        self.chatbots = QtWidgets.QMainWindow()
+        self.ui = Ui_chatbots()
+        self.ui.setupUi(self.chatbots)
+        self.chatbots.show()
 
     def monitor(self):
-        self.Monitoreo = QtWidgets.QMainWindow()
-        self.ui = Ui_Monitoreo()
-        self.ui.setupUi(self.Monitoreo)
-        self.Monitoreo.show()
+        self.monito = QtWidgets.QMainWindow()
+        self.ui = Ui_monito()
+        self.ui.setupUi(self.monito)
+        self.monito.show()
 
     def desafio(self):
         self.desafios = QtWidgets.QMainWindow()
@@ -1177,6 +1256,7 @@ class Ui_Register(object):
     def setupUi(self, Register):
         Register.setObjectName("Register")
         Register.resize(380, 812)
+        Register.setFixedSize(380,812)
         Register.setStyleSheet("*{\n"
                                "font-family: century gothic;\n"
                                "}\n"
@@ -1316,6 +1396,7 @@ class Ui_Chatbot(object):
     def setupUi(self, Chatbot):
         Chatbot.setObjectName("Chatbot")
         Chatbot.resize(380, 812)
+        Chatbot.setFixedSize(380,812)
         Chatbot.setStyleSheet("*{\n"
 "font-family: century gothic;\n"
 "}\n"
